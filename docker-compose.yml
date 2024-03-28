@@ -1,0 +1,40 @@
+version: "3.9"
+services:
+  # @todo fix run into nodejs into Local
+#  api:
+#    container_name: phone_app
+#    build:
+#      dockerfile: Dockerfile
+#      context: .
+#      # Only will build development stage from our dockerfile
+#      target: development
+#    volumes:
+#      - .:/usr/src/app
+#    env_file:
+#      - .env
+#    # Run a command against the development stage of the image
+#    command: npm run start:dev
+#    ports:
+#      - 3035:3000
+#    depends_on:
+#      - postgres
+  postgres:
+    container_name: postgres_phone
+    image: postgres:16.2-alpine3.19
+    ports:
+      - "5433:5432"
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - docker-phone-postgres:/var/lib/postgresql/data
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8083:8080
+
+volumes:
+  docker-phone-postgres:
