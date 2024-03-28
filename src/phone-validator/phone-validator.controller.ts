@@ -12,11 +12,6 @@ export class PhoneValidatorController {
     return this.phoneValidatorService.validate(phone);
   }
 
-  // @Get('all')
-  // findAll(){
-  //   return this.phoneValidatorService.findAll()
-  // }
-
   @Post("phone-validator")
   async create(@Body() createPhoneValidatorDto: CreatePhoneValidatorDto) {
     return this.phoneValidatorService.create(createPhoneValidatorDto);

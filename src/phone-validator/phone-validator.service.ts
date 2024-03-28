@@ -35,6 +35,7 @@ export class PhoneValidatorService {
       return false;
     }
 
+    // Take rule for current customer country without any additional queries
     const rule = rules.find(rule => rule.code === phoneCode);
     if (!this.isDigitPrefixValid(phone, rule)) {
       return false;
@@ -44,6 +45,19 @@ export class PhoneValidatorService {
       return false;
     }
 
+    return true;
+  }
+
+  private isPhoneNumberValid(value: string) {
+    if (value[0] !== "+") {
+      return false;
+    }
+    for (let i = value.length - 1; i >= 1; i--) {
+      const charCode = value.charCodeAt(i);
+      if (charCode < 48 || charCode > 57) {
+        return false; // If any character after the first one is not a digit, return false
+      }
+    }
     return true;
   }
 
@@ -66,12 +80,10 @@ export class PhoneValidatorService {
   }
 
   private isDigitPrefixValid(phone: string, rule: PhoneValidator) {
-    if (typeof phone === "string") {
-      const significantDigits = phone.substring(phone.length);
-      for (const linePrefix of rule.requiredDigits) {
-        if (significantDigits.startsWith(linePrefix.toString())) {
-          return true;
-        }
+    const significantDigits = phone.substring(rule.code.length);
+    for (const linePrefix of rule.requiredDigits) {
+      if (significantDigits.startsWith(linePrefix.toString())) {
+        return true;
       }
     }
     return false;
@@ -80,18 +92,5 @@ export class PhoneValidatorService {
   private isLengthInRange(phone: string, rule: PhoneValidator) {
     const length = phone.length - rule.code.length;
     return length >= rule.min && length <= rule.max;
-  }
-
-  private isPhoneNumberValid(value: string) {
-    if (value[0] !== "+") {
-      return false;
-    }
-    for (let i = value.length - 1; i >= 1; i--) {
-      const charCode = value.charCodeAt(i);
-      if (charCode < 48 || charCode > 57) {
-        return false; // If any character after the first one is not a digit, return false
-      }
-    }
-    return true;
   }
 }
