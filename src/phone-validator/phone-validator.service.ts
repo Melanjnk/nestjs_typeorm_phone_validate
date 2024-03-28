@@ -24,95 +24,74 @@ export class PhoneValidatorService {
   }
 
   async validate(phone: string) {
-    console.log("validate start");
-
-    function isPhoneNumber(value: string): boolean {
-      if (value[0] !== "+") {
-        return false;
-      }
-      console.log(`Input + ${value}`);
-      for (let i = value.length - 1; i >= 1; i--) {
-        const charCode = value.charCodeAt(i);
-        if (charCode < 48 || charCode > 57) {
-          return false; // If any character after the first one is not a digit, return false
-        }
-      }
-      console.log(`Input digits ${value}`);
-      return true;
-    }
-
-    if (!isPhoneNumber(phone)) {
-      console.log("Phone number format: start from +, consist only digits");
+    // Skip any db queries, if it not a +Numeric
+    if (!this.isPhoneNumberValid(phone)) {
       return false;
     }
 
-    console.log(`phone ${phone}`);
-    let rules = await this.phoneValidatorRepository.find();
-
-    function inWhiteListCountriesCode(rules) {
-
-      let whiteListCodes: string[] = [];
-      rules.forEach(validationRule => {
-        whiteListCodes.push(validationRule.code);
-      });
-
-      let phoneCode = "";
-      console.log(`allowedCodes : ${whiteListCodes}`);
-      for (const whiteCode of whiteListCodes) {
-        if (phone.startsWith(whiteCode)) {
-          phoneCode = whiteCode;
-        }
-      }
-      if (phoneCode === "") {
-        console.log("Not supported Country code");
-        return false;
-      }
-      console.log(`Right code is ${phoneCode}`);
-      return phoneCode;
-    }
-
-    let phoneCode = inWhiteListCountriesCode(rules);
+    const rules = await this.phoneValidatorRepository.find();
+    const phoneCode = this.getValidCountryCode(phone, rules);
     if (phoneCode === false) {
-      console.log("Out of whiteListCountriesCode");
       return false;
     }
 
-
-    console.log("Success inWhiteListCountriesCode");
     const rule = rules.find(rule => rule.code === phoneCode);
-    console.log(`Success rule ${rule.requiredDigits}`);
+    if (!this.isDigitPrefixValid(phone, rule)) {
+      return false;
+    }
 
-    function isDigitPrefixValid(phoneNumber: string): boolean {
-      if (typeof phoneCode === "string") {
-        const significantDigits = phoneNumber.substring(phoneCode.length);
-        for (const linePrefix of rule.requiredDigits) {
-          if (significantDigits.startsWith(linePrefix.toString())) {
-            return true;
-          }
+    if (!this.isLengthInRange(phone, rule)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private getValidCountryCode(phone: string, rules: PhoneValidator[]) {
+    let whiteListCodes: string[] = [];
+    rules.forEach(validationRule => {
+      whiteListCodes.push(validationRule.code);
+    });
+
+    let phoneCode = "";
+    for (const whiteCode of whiteListCodes) {
+      if (phone.startsWith(whiteCode)) {
+        phoneCode = whiteCode;
+      }
+    }
+    if (phoneCode === "") {
+      return false;
+    }
+    return phoneCode;
+  }
+
+  private isDigitPrefixValid(phone: string, rule: PhoneValidator) {
+    if (typeof phone === "string") {
+      const significantDigits = phone.substring(phone.length);
+      for (const linePrefix of rule.requiredDigits) {
+        if (significantDigits.startsWith(linePrefix.toString())) {
+          return true;
         }
       }
+    }
+    return false;
+  }
+
+  private isLengthInRange(phone: string, rule: PhoneValidator) {
+    const length = phone.length - rule.code.length;
+    return length >= rule.min && length <= rule.max;
+  }
+
+  private isPhoneNumberValid(value: string) {
+    if (value[0] !== "+") {
       return false;
     }
-
-    if (!isDigitPrefixValid(phone)) {
-      console.log(`Required DigitPrefix not found ${phone}`);
-      return false;
+    for (let i = value.length - 1; i >= 1; i--) {
+      const charCode = value.charCodeAt(i);
+      if (charCode < 48 || charCode > 57) {
+        return false; // If any character after the first one is not a digit, return false
+      }
     }
-    console.log(`Success Required DigitPrefix ${phone}`);
-
-    function isLengthInRange(phoneNumber: string): boolean {
-      console.log(`Range[${rule.min}.${rule.max}]: min ${rule.min} max ${rule.max} `);
-      const length = phoneNumber.length - rule.code.length;
-      console.log(`Count Significant Digits of phone without CountryCode: ${length} `);
-      return length >= rule.min && length <= rule.max;
-    }
-
-    if (!isLengthInRange(phone)) {
-      console.log(`Length out of Range, Please input the phone number with a length within the specified range [${rule.min},${rule.max}]`);
-      return false;
-    }
-    console.log(`All validation successfully passed, phone number ${phone} is valid`);
     return true;
-    console.log("validate end");
   }
 }
