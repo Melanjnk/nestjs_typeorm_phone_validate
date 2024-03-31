@@ -3,6 +3,9 @@ import { CreatePhoneValidatorDto } from "./dto/create-phone-validator.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { PhoneValidator } from "./entities/phone-validator.entity";
 import { Repository } from "typeorm";
+import { CountryCodeHandler } from "./chain-of-responsibility/CountryCodeHandler";
+import { RequiredPrefixHandler } from "./chain-of-responsibility/RequiredPrefixHandler";
+import { LengthInRangeHandler } from "./chain-of-responsibility/LengthInRangeHandler";
 
 @Injectable()
 export class PhoneValidatorService {
@@ -29,23 +32,24 @@ export class PhoneValidatorService {
       return false;
     }
 
-    const rules = await this.phoneValidatorRepository.find();
-    const phoneCode = this.getValidCountryCode(phone, rules);
-    if (phoneCode === false) {
+    function check(handler: Handler) {
+      const result = handler.handle(phone);
+      if (result) {
+        return true;
+      }
       return false;
     }
+    const phoneValidators = await this.phoneValidatorRepository.find();
 
-    // Take rule for current customer country without any additional queries
-    const rule = rules.find(rule => rule.code === phoneCode);
-    if (!this.isDigitPrefixValid(phone, rule)) {
-      return false;
-    }
+    const CountryCode = new CountryCodeHandler(phoneValidators);
+    const RequiredPrefix = new RequiredPrefixHandler(phoneValidators);
+    const LengthInRange = new LengthInRangeHandler(phoneValidators);
 
-    if (!this.isLengthInRange(phone, rule)) {
-      return false;
-    }
+    CountryCode
+      .setNext(RequiredPrefix)
+      .setNext(LengthInRange);
 
-    return true;
+    return check(CountryCode);
   }
 
   private isPhoneNumberValid(value: string) {
@@ -59,38 +63,5 @@ export class PhoneValidatorService {
       }
     }
     return true;
-  }
-
-  private getValidCountryCode(phone: string, rules: PhoneValidator[]) {
-    let whiteListCodes: string[] = [];
-    rules.forEach(validationRule => {
-      whiteListCodes.push(validationRule.code);
-    });
-
-    let phoneCode = "";
-    for (const whiteCode of whiteListCodes) {
-      if (phone.startsWith(whiteCode)) {
-        phoneCode = whiteCode;
-      }
-    }
-    if (phoneCode === "") {
-      return false;
-    }
-    return phoneCode;
-  }
-
-  private isDigitPrefixValid(phone: string, rule: PhoneValidator) {
-    const significantDigits = phone.substring(rule.code.length);
-    for (const linePrefix of rule.requiredDigits) {
-      if (significantDigits.startsWith(linePrefix.toString())) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private isLengthInRange(phone: string, rule: PhoneValidator) {
-    const length = phone.length - rule.code.length;
-    return length >= rule.min && length <= rule.max;
   }
 }

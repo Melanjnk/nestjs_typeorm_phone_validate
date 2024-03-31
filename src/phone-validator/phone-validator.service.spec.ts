@@ -48,33 +48,42 @@ describe('PhoneValidatorService', () => {
     it('should return false if no rules found for country code', async () => {
       const mockRules: PhoneValidator[] = [];
       mockPhoneValidatorRepository.find.mockResolvedValueOnce(mockRules);
-
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       const result = await phoneValidatorService.validate('+123456789');
       expect(result).toBe(false);
+      expect(consoleErrorSpy).toHaveBeenCalledWith("\x1b[41m CountryCodeHandler check failed \x1b[0m");
+      consoleErrorSpy.mockRestore();
     });
 
     it('should return false if digit prefix is not valid', async () => {
       const mockRules: PhoneValidator[] = [{ id: '1', countryName:"be", code: '+32', requiredDigits: [46, 56], min: 8, max: 12, created: date, updated: date }];
       mockPhoneValidatorRepository.find.mockResolvedValueOnce(mockRules);
-
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       const result = await phoneValidatorService.validate('+32789123');
       expect(result).toBe(false);
+      expect(consoleErrorSpy).toHaveBeenCalledWith("\x1b[41m RequiredPrefixHandler check failed \x1b[0m");
+      consoleErrorSpy.mockRestore();
     });
 
     it('should return false if phone length is out of range: Length < min', async () => {
       const mockRules: PhoneValidator[] = [{ id: '1', countryName:"be", code: '+32', requiredDigits: [46, 56], min: 8, max: 12, created: date, updated: date  }];
       mockPhoneValidatorRepository.find.mockResolvedValueOnce(mockRules);
-
-      const result = await phoneValidatorService.validate('+3245678'); // Length < min
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const result = await phoneValidatorService.validate('+324678'); // Length < min
       expect(result).toBe(false);
+      expect(consoleErrorSpy).toHaveBeenCalledWith("\x1b[41m LengthInRangeHandler check failed \x1b[0m");
+      consoleErrorSpy.mockRestore();
     });
 
     it('should return false if phone length is out of range: Length > max', async () => {
       const mockRules: PhoneValidator[] = [{ id: '1', countryName:"be", code: '+32', requiredDigits: [46, 56], min: 8, max: 12, created: date, updated: date  }];
       mockPhoneValidatorRepository.find.mockResolvedValueOnce(mockRules);
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      const result = await phoneValidatorService.validate('+32456789123456789'); // Length > max
+      const result = await phoneValidatorService.validate('+3246789123456789'); // Length > max
+      expect(consoleErrorSpy).toHaveBeenCalledWith("\x1b[41m LengthInRangeHandler check failed \x1b[0m");
       expect(result).toBe(false);
+      consoleErrorSpy.mockRestore();
     });
 
     it('should return true if phone number is valid', async () => {
