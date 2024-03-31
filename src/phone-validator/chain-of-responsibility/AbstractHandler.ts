@@ -1,7 +1,17 @@
+import { Logger } from "@nestjs/common";
+import { PhoneValidator } from "../entities/phone-validator.entity";
+
 /**
  * The default chaining behavior can be implemented inside a base handler class.
  */
 export abstract class AbstractHandler implements Handler {
+
+  constructor(protected readonly phoneValidators: PhoneValidator[]
+  ) {
+    this.phoneValidators = phoneValidators;
+  }
+
+  protected readonly logger = new Logger(`${this.constructor.name}:phone-validator`);
 
   private nextHandler: Handler;
 
@@ -22,6 +32,6 @@ export abstract class AbstractHandler implements Handler {
       return this.nextHandler.handle(phone);
     }
 
-    return null;
+    return false;
   }
 }

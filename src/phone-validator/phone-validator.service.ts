@@ -31,14 +31,6 @@ export class PhoneValidatorService {
     if (!this.isPhoneNumberValid(phone)) {
       return false;
     }
-
-    function check(handler: Handler) {
-      const result = handler.handle(phone);
-      if (result) {
-        return true;
-      }
-      return false;
-    }
     const phoneValidators = await this.phoneValidatorRepository.find();
 
     const CountryCode = new CountryCodeHandler(phoneValidators);
@@ -49,7 +41,7 @@ export class PhoneValidatorService {
       .setNext(RequiredPrefix)
       .setNext(LengthInRange);
 
-    return check(CountryCode);
+    return CountryCode.handle(phone)
   }
 
   private isPhoneNumberValid(value: string) {
