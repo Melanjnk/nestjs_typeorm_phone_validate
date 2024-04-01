@@ -28,24 +28,19 @@ export class ValidatePhoneNumberPipe implements PipeTransform {
     if (!countryRule) {
       throw new BadRequestException('Country code not supported.');
     }
-    const countryCode = countryRule.countryCode;
+    const { countryCode, requiredDigits, min, max, countryTitle } = countryRule;
 
     // Check if the length of the phone number is within the specified range
     const significantDigits = phoneNumber.substring(countryCode.length);
 
-    if (
-      !this.hasRequiredDigits(significantDigits, countryRule.requiredDigits)
-    ) {
+    if (!this.hasRequiredDigits(significantDigits, requiredDigits)) {
       throw new BadRequestException(
-        `Phone in ${countryRule.countryTitle} should consist one of [${countryRule.requiredDigits}]`,
+        `Phone in ${countryTitle} should consist one of [${requiredDigits}]`,
       );
     }
-    if (
-      significantDigits.length < countryRule.min ||
-      significantDigits.length > countryRule.max
-    ) {
+    if (significantDigits.length < min || significantDigits.length > max) {
       throw new BadRequestException(
-        `Phone number length should be between ${countryRule.min} and ${countryRule.max} digits.`,
+        `Phone number length should be between ${min} and ${max} digits.`,
       );
     }
 

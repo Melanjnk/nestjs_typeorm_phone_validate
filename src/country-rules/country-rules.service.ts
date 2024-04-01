@@ -1,6 +1,6 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { QueryFailedError, Repository } from "typeorm";
+import { Repository } from 'typeorm';
 import { CountryRule } from './entities/country-rule.entity';
 import { CreateCountryRuleDto } from './dto/create-country-rule.dto';
 
@@ -11,10 +11,10 @@ export class CountryRulesService {
     private countryRepository: Repository<CountryRule>,
   ) {}
 
-  async getAllCountryCodes(){
+  async getAllCountryCodes() {
     return await this.countryRepository.find();
   }
-  async getCountryByCode(code: string){
+  async getCountryByCode(code: string) {
     return await this.countryRepository.findOne({
       where: { countryCode: code },
     });
