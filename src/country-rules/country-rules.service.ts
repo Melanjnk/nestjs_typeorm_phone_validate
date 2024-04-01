@@ -6,13 +6,23 @@ import { CreateCountryRuleDto } from './dto/create-country-rule.dto';
 
 @Injectable()
 export class CountryRulesService {
+  private readonly logger: Logger;
   constructor(
     @InjectRepository(CountryRule)
     private countryRepository: Repository<CountryRule>,
-  ) {}
+  ) {
+    this.logger = new Logger(CountryRulesService.name);
+  }
 
-  async getAllCountryCodes() {
-    return await this.countryRepository.find();
+  async getAllCountryRules() {
+    try {
+      const countryRules = await this.countryRepository.find();
+      this.logger.log(`getAllCountryRules ${JSON.stringify(countryRules)}`);
+      return countryRules;
+    } catch (e) {
+      this.logger.error(e);
+      throw e;
+    }
   }
   async getCountryByCode(code: string) {
     return await this.countryRepository.findOne({
@@ -21,18 +31,20 @@ export class CountryRulesService {
   }
 
   async create(createCountryRuleDto: CreateCountryRuleDto) {
-    const logger = new Logger();
-    logger.log(createCountryRuleDto);
+    this.logger.log(createCountryRuleDto);
     try {
-      this.countryRepository.save({
+      const { id } = await this.countryRepository.save({
         countryTitle: createCountryRuleDto.countryName,
         countryCode: createCountryRuleDto.code,
         requiredDigits: createCountryRuleDto.requiredDigits,
         min: createCountryRuleDto.min,
         max: createCountryRuleDto.max,
       });
+      this.logger.log(id);
+      return id;
     } catch (error) {
-      logger.fatal(error);
+      this.logger.error(error);
+      throw error;
     }
   }
 }

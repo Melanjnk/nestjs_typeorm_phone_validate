@@ -20,7 +20,7 @@ export class ValidatePhoneNumberPipe implements PipeTransform {
     const phoneNumber = value.trim();
 
     // Fetch countryRule from database using the countryRule code
-    const countryRules = await this.countryService.getAllCountryCodes();
+    const countryRules = await this.countryService.getAllCountryRules();
     const countryRule = countryRules.find((countryRule) =>
       phoneNumber.startsWith(countryRule.countryCode),
     );
