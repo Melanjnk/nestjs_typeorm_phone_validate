@@ -40,7 +40,6 @@ export class ValidatePhoneNumberPipe implements PipeTransform {
         `Phone in ${countryRule.countryTitle} should consist one of [${countryRule.requiredDigits}]`,
       );
     }
-    // const phoneNumberLength = phoneNumber.length - 3; // Exclude countryRule code from length check
     if (
       significantDigits.length < countryRule.min ||
       significantDigits.length > countryRule.max
