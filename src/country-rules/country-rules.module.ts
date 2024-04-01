@@ -6,10 +6,7 @@ import { CountryRule } from './entities/country-rule.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([CountryRule]),
-    // TypeOrmModule.forRoot({ entities: [CountryRule] }),
-  ],
+  imports: [TypeOrmModule.forFeature([CountryRule])],
   controllers: [CountryRulesController],
   providers: [CountryRulesService, Repository<CountryRule>],
   exports: [CountryRulesService, Repository<CountryRule>],
