@@ -1,5 +1,10 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from "@nestjs/common";
-import { QueryFailedError } from "typeorm";
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpStatus,
+} from '@nestjs/common';
+import { QueryFailedError } from 'typeorm';
 
 @Catch(QueryFailedError)
 export class QueryFailedFilter implements ExceptionFilter {
@@ -7,11 +12,15 @@ export class QueryFailedFilter implements ExceptionFilter {
     const context = host.switchToHttp();
     const response = context.getResponse();
 
-    let msgHttp = "";
+    let msgHttp = '';
     let msg: string = `Database query failed `;
     // @see PhoneValidatorService
     const POSITION_OF_COUNTRY_IN_QUERY = 0;
-    if (exception.message.includes("duplicate key value violates unique constraint")) {
+    if (
+      exception.message.includes(
+        'duplicate key value violates unique constraint',
+      )
+    ) {
       msg += ` ${exception.message}`;
       console.log(`Original Msg: ${msg}`);
       msgHttp = `The Property: countryName is unique, \"${exception.parameters[POSITION_OF_COUNTRY_IN_QUERY]}\" already exists in db`;
@@ -20,7 +29,7 @@ export class QueryFailedFilter implements ExceptionFilter {
     // Customize the error message and status code as needed
     response.status(HttpStatus.BAD_REQUEST).json({
       statusCode: HttpStatus.BAD_REQUEST,
-      message: msgHttp
+      message: msgHttp,
     });
   }
 }

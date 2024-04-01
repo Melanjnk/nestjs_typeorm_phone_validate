@@ -1,6 +1,12 @@
-import { IsArray, IsNotEmpty, IsNumber, IsString, MaxLength } from "class-validator";
+import {
+  IsArray,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
-export class CreatePhoneValidatorDto {
+export class CreateCountryRuleDto {
   @IsNotEmpty()
   @IsString()
   @MaxLength(2)
